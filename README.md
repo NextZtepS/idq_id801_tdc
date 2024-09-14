@@ -1,5 +1,7 @@
 # IDQ ID801 TDC (Time to Digital Converter) or "Time Tagging Box"
 
+This package is developed within the advisory of the Gallicchio Research Group, Harvey Mudd College.
+
 It has a fast counter with a period ("native bin") of 81 ps. It outputs the value of this counter along with which channel saw the rising edge. This instruction assumes that you have the latest version of firmware updated on the physical IDQ ID801. Firmware update is contained with the official manual provided by the IDQ company itself (you should contact them directly if you own the device).
 
 
