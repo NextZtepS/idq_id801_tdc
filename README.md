@@ -23,6 +23,10 @@ then, add the following lines to the file and press `:wq` to save and quit
 # Make IDQ devices available to all users
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="16c0", MODE="0660"
 ```
+install the package by running the following shell command:
+```shell
+pip install idq-id801
+```
 
  
 ## Python module that utilizes C library shared-object

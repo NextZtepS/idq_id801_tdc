@@ -5,7 +5,8 @@ import os
 from queue import Queue
 from threading import Thread, Lock
 
-from src.id801.id801 import ID801
+
+from id801 import ID801
 
 
 def write_data_to_csv(file_name: str, data_queue: Queue, lock: Lock, batch_size: int):

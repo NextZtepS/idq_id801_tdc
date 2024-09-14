@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from datetime import datetime
 
-from src.id801.id801 import ID801
+
+from id801 import ID801
 
 
 def main(id801: ID801, exp_time: int, coinc_win: int, switch_termination: int, channels_A: list[str], channels_B: list[str], save: bool = False):

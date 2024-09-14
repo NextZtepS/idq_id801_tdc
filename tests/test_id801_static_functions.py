@@ -13,6 +13,7 @@ def test_generate_timestamps():
     assert np.round(ID801.calculate_average_frequency(df, 1), 0) == 1000
     assert np.round(ID801.calculate_average_frequency(df, 2), 0) == 2000
 
+
 def test_get_coincs_count():
     data = {
         "timestamp": [100, 200, 400, 500, 600, 650],
@@ -23,6 +24,7 @@ def test_get_coincs_count():
     assert ID801.get_coincs_count_from_interval(df, 100, 1, 2, 100, 200) == 1
     assert ID801.get_coincs_count_from_interval(df, 100, 1, 2, 400, 650) == 2
     assert ID801.get_coincs_count_from_intervals(df, 100, 1, 2, [(100, 200), (400, 600)]) == 3
+
 
 def test_get_nearest_offset_stats():
     data = {
