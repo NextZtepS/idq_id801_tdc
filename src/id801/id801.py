@@ -5,7 +5,6 @@ import pandas as pd
 import time
 import sys
 
-
 # Add the parent directory to the path to ensure that we can find libtdcbase.so
 path_list = __file__.split('/')
 package_dir = '/'.join(path_list[:-1])
@@ -743,28 +742,28 @@ class ID801:
     # -------------------------------------
 
     @staticmethod
-    def generate_timestamps_on_channel(channel: int, freq: float, num_timestamps: int, start_time: int = 0, noise_level: float = 0) -> pd.DataFrame:
+    def generate_timestamps_on_channel(channel: int | str, freq: float, num_timestamps: int, start_timestamp: int = 0, noise_level: float = 0) -> pd.DataFrame:
         """
         Generate a DataFrame of timestamps for a given channel with optional noise.
 
         Args:
-            channel (int): The channel number.
+            channel (int | str): The channel number or custom name to generate timestamps for.
             freq (float): The frequency of the timestamps.
             num_timestamps (int): The number of timestamps to generate.
-            start_time (int): The starting timestamp.
+            start_timestamp (int): The starting timestamp.
             noise_level (float): The level of noise to introduce (as a fraction of 1/freq). Default is 0 (no noise).
 
         Returns:
             pd.DataFrame: A DataFrame containing the generated timestamps.
         """
         tau = 1 / freq
-        base_timestamps = np.arange(num_timestamps) * tau + start_time
+        base_times = np.arange(num_timestamps) * tau
         
         if noise_level > 0:
             noise = np.random.uniform(-noise_level * tau, noise_level * tau, num_timestamps)
-            base_timestamps += noise
+            base_times += noise
 
-        timestamps = (base_timestamps / ID801.TDC_UNIT).astype(int)
+        timestamps = ((base_times) / ID801.TDC_UNIT).astype(int) + start_timestamp
         
         return pd.DataFrame({
             "timestamp": timestamps,
@@ -772,38 +771,42 @@ class ID801:
         })
     
     @staticmethod
-    def generate_timestamps_on_channels(channels: list[int], freqs: list[float], num_timestamps: int, start_time: int = 0, noise_level: float = 0) -> pd.DataFrame:
+    def generate_timestamps_on_channels(channels: list[int | str], freqs: list[float], num_timestamps: int, start_timestamp: int = 0, noise_level: float = 0) -> pd.DataFrame:
         """
         Generate a DataFrame of timestamps for multiple channels with optional noise.
 
         Args:
-            channels (list[int]): A list of channel numbers.
+            channels (list[int | str]): A list of channel numbers or custom names to generate timestamps for.
             freqs (list[float]): A list of frequencies for each channel.
             num_timestamps (int): The number of timestamps to generate.
-            start_time (int): The starting timestamp.
+            start_timestamp (int): The starting timestamp.
             noise_level (float): The level of noise to introduce (as a fraction of 1/freq). Default is 0 (no noise).
 
         Returns:
             pd.DataFrame: A DataFrame containing the generated timestamps.
         """
+        assert len(channels) == len(freqs), "The number of channels and frequencies must be the same."
+
         dfs = []
         for channel, freq in zip(channels, freqs):
-            dfs.append(ID801.generate_timestamps_on_channel(channel, freq, num_timestamps, start_time, noise_level))
+            dfs.append(ID801.generate_timestamps_on_channel(channel, freq, num_timestamps, start_timestamp, noise_level))
         
         return pd.concat(dfs).sort_values("timestamp", ignore_index=True)
     
     @staticmethod
-    def calculate_average_frequency(df: pd.DataFrame, channel: int) -> float:
+    def calculate_average_frequency(df: pd.DataFrame, channel: int | str) -> float:
         """
         Calculate the average frequency of events for a given channel.
 
         Args:
             df (pd.DataFrame): A DataFrame containing the timestamps and channels of the events.
-            channel (int): The channel number to calculate the frequency for.
+            channel (int | str): The channel number or custom name to calculate the frequency for.
 
         Returns:
             float: The average frequency of the events for the given channel.
         """
+        assert channel in df["channel"].unique(), f"Channel {channel} not found in DataFrame."
+
         channel_df = df[df["channel"] == channel]
         time_diffs = np.diff(channel_df["timestamp"])
         avg_time_diff = float(np.mean(time_diffs))
@@ -816,15 +819,15 @@ class ID801:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def get_coinc_count(df: pd.DataFrame, coinc_window: int, channel1: int, channel2: int) -> int:
+    def get_coinc_count(df: pd.DataFrame, coinc_window: int, channel1: int | str, channel2: int | str) -> int:
         """
         Get the number of coincidences between two channels within a given time window.
 
         Args:
             df (pd.DataFrame): A DataFrame containing the timestamps and channels of the events.
             coinc_window (int): A time window in which to count coincidences.
-            channel1 (int): A channel number.
-            channel2 (int): A channel number.
+            channel1 (int | str): A channel number or custom name.
+            channel2 (int | str): A channel number or custom name.
 
         Returns:
             int: The number of coincidences between the two channels.
@@ -852,8 +855,8 @@ class ID801:
     def get_coincs_count_from_interval(
         df: pd.DataFrame, 
         coinc_window: int, 
-        channel1: int, 
-        channel2: int,
+        channel1: int | str, 
+        channel2: int | str,
         timestamp1: int,
         timestamp2: int
     ) -> int:
@@ -863,14 +866,18 @@ class ID801:
         Args:
             df (pd.DataFrame): A DataFrame containing the timestamps and channels of the events.
             coinc_window (int): A time window in which to count coincidences.
-            channel1 (int): A channel number.
-            channel2 (int): A channel number.
+            channel1 (int | str): A channel number or custom name.
+            channel2 (int| str): A channel number or custom name.
             timestamp1 (int): A timestamp to start counting coincidences.
             timestamp2 (int): A timestamp to stop counting coincidences.
 
         Returns:
             int: The number of coincidences between the two channels.
         """
+        assert timestamp1 <= timestamp2, "timestamp2 must greater than or equal to timestamp1."
+        assert timestamp1 >= df["timestamp"].min(), "timestamp1 is out of range."
+        assert timestamp2 <= df["timestamp"].max(), "timestamp2 is out of range."
+
         df = df.sort_values("timestamp", ignore_index=True)  # Ensure the DataFrame is sorted by timestamp
         filtered_df = df[(df["timestamp"] >= timestamp1) & (df["timestamp"] <= timestamp2)].reset_index(drop=True)
         return ID801.get_coinc_count(filtered_df, coinc_window, channel1, channel2)
@@ -879,30 +886,46 @@ class ID801:
     def get_coincs_count_from_intervals(
         df: pd.DataFrame, 
         coinc_window: int, 
-        channel1: int, 
-        channel2: int,
+        channel1: int | str, 
+        channel2: int | str,
         intervals: list[tuple[int, int]]
     ) -> int:
+        """
+        Get the number of coincidences between two channels within a given time window for multiple intervals.
+
+        Args:
+            df (pd.DataFrame): A DataFrame containing the timestamps and channels of the events.
+            coinc_window (int): A time window in which to count coincidences.
+            channel1 (int | str): A channel number or custom name.
+            channel2 (int | str): A channel number or custom name.
+            intervals (list[tuple[int, int]]): A list of tuples representing the start and end timestamps of the intervals.
+
+        Returns:
+            int: The number of coincidences between the two channels.
+        """
         coinc_counts = []
         for interval in intervals:
             coinc_counts.append(ID801.get_coincs_count_from_interval(df, coinc_window, channel1, channel2, interval[0], interval[1]))
         return sum(coinc_counts)
 
     @staticmethod
-    def get_nearest_offset_stats(df: pd.DataFrame, leading_channel: int, trailing_channel: int) -> tuple:
+    def get_nearest_offset_stats(df: pd.DataFrame, leading_channel: int | str, trailing_channel: int | str) -> tuple:
         """
         Get the mean and standard deviation of the time offset between the nearest events on two channels.
 
         Args:
             df (pd.DataFrame): A DataFrame containing the timestamps and channels of the events.
-            leading_channel (int): A leading channel number.
-            trailing_channel (int): A trailing channel number.
+            leading_channel (int | str): A leading channel number or custom name.
+            trailing_channel (int| str): A trailing channel number or custom name.
 
         Returns:
             mean_offset (float): The mean time offset between the nearest events on the two channels.
             std_offset (float): The standard deviation of the time offsets between the nearest events on the two channels.
             nearest_offset (list): A list of the time offsets between the nearest events on the two channels.
         """
+        assert leading_channel in df["channel"].unique(), f"Channel {leading_channel} not found in DataFrame."
+        assert trailing_channel in df["channel"].unique(), f"Channel {trailing_channel} not found in DataFrame."
+
         df = df.sort_values("timestamp", ignore_index=True)  # Ensure the DataFrame is sorted by timestamp
         nearest_offset = []
         for i in range(len(df)):
