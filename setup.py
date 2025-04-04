@@ -8,7 +8,7 @@ long_description = (this_directory / "README.md").read_text()
 setup(
     name="idq_id801",
     description="Python library for interfacing with IDQ ID801 Time to Digital Converter",
-    version="1.0.1",
+    version="1.0.2",
     author="NextZtepS",
     author_email="natdanaiongarjvaja@gmail.com",
     package_dir={"": "src"},

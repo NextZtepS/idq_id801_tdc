@@ -5,7 +5,6 @@ import os
 from queue import Queue
 from threading import Thread, Lock
 
-
 from id801 import ID801
 
 
@@ -26,7 +25,7 @@ def write_data_to_csv(file_name: str, data_queue: Queue, lock: Lock, batch_size:
 
 def write_to_csv(file_name: str, data: list, lock: Lock):
     with lock:
-        with open(file_name, "a", newline='', buffering=8192) as csv_file:
+        with open(file_name, "a", newline="", buffering=8192) as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerows(data)
 
@@ -44,7 +43,9 @@ def main(id801: ID801, file_name: str, exp_time: int = 100, batch_size: int = 10
     lock = Lock()
 
     # Start the writer thread
-    writer_thread = Thread(target=write_data_to_csv, args=(file_name, data_queue, lock, batch_size))
+    writer_thread = Thread(
+        target=write_data_to_csv, args=(file_name, data_queue, lock, batch_size)
+    )
     writer_thread.start()
 
     # Write the header if the file is empty
@@ -63,13 +64,22 @@ def main(id801: ID801, file_name: str, exp_time: int = 100, batch_size: int = 10
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--exp_time", "-e", default=100, type=int, help="Set the exposure time (ms)")
-    parser.add_argument("--batch_size", "-b", default=100_000, type=int, help="Set the batch size for writing to CSV (Default: 100,000 which 10% of 1MHz)")
+    parser.add_argument(
+        "--exp_time", "-e", default=100, type=int, help="Set the exposure time (ms)"
+    )
+    parser.add_argument(
+        "--batch_size",
+        "-b",
+        default=100_000,
+        type=int,
+        help="Set the batch size for writing to CSV (Default: 100,000 which 10% of 1MHz)",
+    )
     args = parser.parse_args()
     exp_time = args.exp_time
     batch_size = args.batch_size
 
     id801 = ID801()
     id801.switch_termination(False)
+    id801.enable_channels([True] * 8)
     start_time = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
     main(id801, f"timestamps_{start_time}.csv", exp_time, batch_size)
