@@ -184,7 +184,7 @@ if __name__ == "__main__":
         print(f"{scriptname} : Trying to create ID801_Subscriber.")    
         id801 = ID801_Subscriber()
     except Exception as e:
-        print(f"{scriptname} :  Error initializing ID801 ID801_Subscriber: {e}")
+        print(f"{scriptname} : Error initializing ID801 ID801_Subscriber: {e}")
         print(f"{scriptname} : Trying to claim ID801 device...")
         try:
             id801 = ID801()
