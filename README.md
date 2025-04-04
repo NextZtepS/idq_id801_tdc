@@ -53,9 +53,10 @@ python3 record_timestamps.py -e 100 -b 10_000  # to record all timestamps at 100
 ```
 
 ## Python-based publisher-subscriber or server-client pattern
+
 To meet the need for accessing the coincidence data from the ID801 from multiple scripts at the same time, Next O. comes up with two distinct patterns to tackle this:
-- [publisher](./id801_publisher.py)-[subscriber](./id801_subscriber.py): good for retrieving the *same data* across multiple scripts simultaneously with *no side-effect* to the ID801 main device.
-- [server](./id801_server.py)-[client](./id801_client.py): good for retrieving *specific data* for each script's goal simultaneously with *possible reconfiguration* of the ID801 main device
+- [publisher](./id801_publisher.py)-[subscriber](./src/id801/id801_subscriber.py): good for retrieving the *same data* across multiple scripts simultaneously with *no side-effect* to the ID801 main device.
+- [server](./id801_server.py)-[client](./src/id801/id801_client.py): good for retrieving *specific data* for each script's goal simultaneously with *possible reconfiguration* of the ID801 main device
 
 To start the publisher, we can run:
 ```shell
@@ -68,6 +69,7 @@ python3 id801_server.py  # this will spin up the server of ID801 device
 ```
 
 To see the example of how to request/subscribe to the server, refer [ID801_client](./id801_client.py) script that contains the client object API and is executable to fetch the data every 1 second.
+
 
 ## Troubleshooting
 
