@@ -41,11 +41,10 @@ A Python script to try is the [real-time plotter](./real-time_plotter.py) that y
 # This is an example for configurations below:
 # exposure: 100ms
 # coincidence window: 500TDC
-# switch_termination: off
 # save: do not save to CSV file
 # A graph: plot channels "1" and "2"
 # B graph: plot channel "1/2" (coincidence between channels "1" and "2")
-python3 real-time_plotter.py -e 100 -w 500 -t 0 -A "1" "2" -B "1/2"  
+python3 real-time_plotter.py -e 100 -w 500 -A "1" "2" -B "1/2"  
 ```
 
 To record the raw timestamps from the device [record timestamps](./record_timestamps.py) could be used:
